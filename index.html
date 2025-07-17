@@ -3,28 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Code Execution Chatbot</title>
+    <title>Intelligent AI Chatbot</title>
     <link rel="stylesheet" href="./style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
 </head>
 <body>
     <div class="container">
         <header class="header">
-            <h1>🤖 Code Execution Chatbot</h1>
-            <p>Execute JavaScript and Python code interactively</p>
+            <h1>🤖 Intelligent AI Chatbot</h1>
+            <p>Ask me anything! I can answer questions and execute code</p>
         </header>
 
         <div class="chat-container">
             <div id="chatMessages" class="chat-messages">
                 <div class="message bot-message">
                     <div class="message-content">
-                        <span class="message-text">Hello! I'm a code execution chatbot. You can:</span>
+                        <span class="message-text">Hello! I'm an intelligent AI chatbot that can help you with anything:</span>
                         <ul>
-                            <li>Chat with me normally</li>
-                            <li>Execute JavaScript code by typing <code>js:</code> followed by your code</li>
-                            <li>Execute Python code by typing <code>py:</code> followed by your code</li>
+                            <li>💬 <strong>Ask me any question</strong> - I'll search the web for answers</li>
+                            <li>📚 <strong>Get explanations</strong> about science, history, technology, etc.</li>
+                            <li>🧮 <strong>Solve math problems</strong> and calculations</li>
+                            <li>🟨 <strong>Execute JavaScript code</strong> - Switch to JavaScript mode</li>
+                            <li>🐍 <strong>Run Python code</strong> - Switch to Python mode</li>
                         </ul>
-                        <span class="message-text">Try typing something like: <code>js: console.log("Hello World!")</code></span>
+                        <span class="message-text">Try asking: "What is artificial intelligence?" or "Explain how photosynthesis works" or switch to a coding mode!</span>
                     </div>
                 </div>
             </div>
@@ -32,7 +34,7 @@
             <div class="input-container">
                 <div class="input-wrapper">
                     <select id="languageSelect" class="language-select">
-                        <option value="chat">💬 Chat</option>
+                        <option value="chat">💬 Ask Anything</option>
                         <option value="javascript">🟨 JavaScript</option>
                         <option value="python">🐍 Python</option>
                     </select>

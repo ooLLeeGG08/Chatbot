@@ -4,6 +4,9 @@ import tempfile
 import os
 import sys
 import time
+import re
+import urllib.request
+import urllib.parse
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 import threading
@@ -75,7 +78,7 @@ class CodeExecutionChatbotHandler(BaseHTTPRequestHandler):
         language = data.get('language', 'chat')
         
         if language == 'chat':
-            return self.handle_chat_message(message)
+            return self.handle_intelligent_chat(message)
         elif language == 'javascript':
             return self.execute_javascript(message)
         elif language == 'python':
@@ -87,33 +90,203 @@ class CodeExecutionChatbotHandler(BaseHTTPRequestHandler):
                 'error': True
             }
 
-    def handle_chat_message(self, message):
-        """Handle regular chat messages"""
-        # Simple responses for demonstration
-        responses = {
-            'hello': 'Hello! How can I help you with code execution today?',
-            'hi': 'Hi there! Ready to run some code?',
-            'help': 'I can execute JavaScript and Python code. Select a language and type your code!',
-            'what can you do': 'I can execute JavaScript and Python code for you. Just select the language and type your code!',
-            'bye': 'Goodbye! Come back anytime to run more code.',
-            'thanks': 'You\'re welcome! Happy coding!',
-            'how are you': 'I\'m doing great and ready to execute your code!'
-        }
-        
+    def handle_intelligent_chat(self, message):
+        """Handle intelligent chat messages with web search and knowledge"""
         message_lower = message.lower().strip()
         
-        # Check for exact matches first
-        for key, response in responses.items():
-            if key in message_lower:
+        # Programming and tech questions
+        if any(keyword in message_lower for keyword in ['code', 'programming', 'python', 'javascript', 'html', 'css', 'algorithm', 'software', 'development']):
+            return self.handle_programming_question(message)
+        
+        # Math questions
+        if any(keyword in message_lower for keyword in ['calculate', 'math', 'equation', '+', '-', '*', '/', 'solve']):
+            return self.handle_math_question(message)
+        
+        # Current events, facts, general knowledge
+        if any(keyword in message_lower for keyword in ['what is', 'who is', 'when did', 'where is', 'how to', 'why', 'explain', 'tell me about']):
+            return self.search_and_answer(message)
+        
+        # Greetings and basic interactions
+        greetings = {
+            'hello': 'Hello! I\'m an intelligent chatbot that can answer questions, execute code, and help with various topics. What would you like to know?',
+            'hi': 'Hi there! I can help you with questions, run code, or discuss any topic. What\'s on your mind?',
+            'hey': 'Hey! Ready to chat or run some code? Ask me anything!',
+            'good morning': 'Good morning! Hope you\'re having a great day. How can I assist you?',
+            'good afternoon': 'Good afternoon! What can I help you with today?',
+            'good evening': 'Good evening! What would you like to explore or learn about?',
+            'how are you': 'I\'m doing great and ready to help! I can answer questions, execute code, or discuss various topics.',
+            'what can you do': 'I can:\n• Answer questions on any topic using web search\n• Execute JavaScript and Python code\n• Help with math problems\n• Discuss programming concepts\n• Provide explanations and tutorials\n• And much more! What interests you?',
+            'help': 'I\'m here to help! You can:\n• Ask me any question and I\'ll search for answers\n• Switch to JavaScript or Python mode to execute code\n• Ask about programming, math, science, history, etc.\n• Request explanations or tutorials\n\nWhat would you like to explore?',
+            'bye': 'Goodbye! It was great chatting with you. Come back anytime for more questions or coding!',
+            'thanks': 'You\'re very welcome! Happy to help. Feel free to ask anything else!',
+            'thank you': 'My pleasure! I\'m always here when you need answers or want to run some code.'
+        }
+        
+        for greeting, response in greetings.items():
+            if greeting in message_lower:
                 return {
                     'content': response,
                     'type': 'text',
                     'error': False
                 }
         
-        # Default response
+        # For any other question, try to search and provide an intelligent answer
+        return self.search_and_answer(message)
+
+    def handle_programming_question(self, message):
+        """Handle programming-related questions"""
+        message_lower = message.lower()
+        
+        programming_responses = {
+            'python': 'Python is a versatile, high-level programming language known for its readable syntax. It\'s great for web development, data science, AI, automation, and more. Would you like to see some Python code examples?',
+            'javascript': 'JavaScript is the language of the web! It runs in browsers and servers (Node.js). It\'s essential for web development, can create interactive websites, and much more. Want to try some JavaScript code?',
+            'html': 'HTML (HyperText Markup Language) is the backbone of web pages. It structures content using tags like <h1>, <p>, <div>, etc. It works with CSS for styling and JavaScript for interactivity.',
+            'css': 'CSS (Cascading Style Sheets) makes websites beautiful! It controls colors, layouts, fonts, animations, and responsive design. It works hand-in-hand with HTML.',
+            'algorithm': 'Algorithms are step-by-step procedures for solving problems. Common types include sorting (bubble, merge, quick), searching (binary search), and graph algorithms (BFS, DFS).',
+            'function': 'Functions are reusable blocks of code that perform specific tasks. They take inputs (parameters), process them, and often return outputs. They\'re fundamental in all programming languages!'
+        }
+        
+        for keyword, response in programming_responses.items():
+            if keyword in message_lower:
+                return {
+                    'content': response,
+                    'type': 'text',
+                    'error': False
+                }
+        
+        # If no specific match, search for programming-related answer
+        return self.search_and_answer(message)
+
+    def handle_math_question(self, message):
+        """Handle math calculations and questions"""
+        # Try to extract and solve simple math expressions
+        import re
+        
+        # Look for simple arithmetic expressions
+        math_pattern = r'(\d+(?:\.\d+)?)\s*([+\-*/])\s*(\d+(?:\.\d+)?)'
+        match = re.search(math_pattern, message)
+        
+        if match:
+            try:
+                num1, operator, num2 = match.groups()
+                num1, num2 = float(num1), float(num2)
+                
+                if operator == '+':
+                    result = num1 + num2
+                elif operator == '-':
+                    result = num1 - num2
+                elif operator == '*':
+                    result = num1 * num2
+                elif operator == '/':
+                    if num2 != 0:
+                        result = num1 / num2
+                    else:
+                        return {
+                            'content': 'Cannot divide by zero!',
+                            'type': 'text',
+                            'error': False
+                        }
+                
+                return {
+                    'content': f'{num1} {operator} {num2} = {result}',
+                    'type': 'text',
+                    'error': False
+                }
+            except:
+                pass
+        
+        # For complex math questions, search for answers
+        return self.search_and_answer(message)
+
+    def search_and_answer(self, query):
+        """Search the web and provide intelligent answers"""
+        try:
+            # Simple web search using DuckDuckGo's instant answer API
+            search_url = f"https://api.duckduckgo.com/?q={urllib.parse.quote(query)}&format=json&no_html=1&skip_disambig=1"
+            
+            with urllib.request.urlopen(search_url, timeout=10) as response:
+                data = json.loads(response.read().decode())
+            
+            # Try to get instant answer
+            if data.get('AbstractText'):
+                answer = data['AbstractText']
+                source = data.get('AbstractSource', 'DuckDuckGo')
+                return {
+                    'content': f'{answer}\n\n📚 Source: {source}',
+                    'type': 'text',
+                    'error': False
+                }
+            
+            # Try definition
+            if data.get('Definition'):
+                answer = data['Definition']
+                source = data.get('DefinitionSource', 'DuckDuckGo')
+                return {
+                    'content': f'{answer}\n\n📚 Source: {source}',
+                    'type': 'text',
+                    'error': False
+                }
+            
+            # Try related topics
+            if data.get('RelatedTopics') and len(data['RelatedTopics']) > 0:
+                topic = data['RelatedTopics'][0]
+                if 'Text' in topic:
+                    return {
+                        'content': f'{topic["Text"]}\n\n💡 This is one perspective. Would you like me to search for more specific information?',
+                        'type': 'text',
+                        'error': False
+                    }
+            
+            # Try answer
+            if data.get('Answer'):
+                return {
+                    'content': f'{data["Answer"]}\n\n📚 Source: DuckDuckGo',
+                    'type': 'text',
+                    'error': False
+                }
+            
+            # Fallback with helpful response
+            return {
+                'content': f'I searched for "{query}" but didn\'t find a direct answer. Here are some suggestions:\n\n• Try rephrasing your question\n• Be more specific\n• Ask about a particular aspect of the topic\n• Use the code execution modes for programming questions\n\nWhat specific aspect would you like to know about?',
+                'type': 'text',
+                'error': False
+            }
+            
+        except Exception as e:
+            # Provide intelligent fallback responses based on question type
+            return self.provide_fallback_answer(query)
+
+    def provide_fallback_answer(self, query):
+        """Provide intelligent fallback answers when search fails"""
+        query_lower = query.lower()
+        
+        # Science questions
+        if any(word in query_lower for word in ['science', 'physics', 'chemistry', 'biology', 'astronomy']):
+            return {
+                'content': 'Science is fascinating! While I couldn\'t search for your specific question right now, I\'d be happy to discuss scientific concepts. Could you ask a more specific question about the scientific topic you\'re interested in?',
+                'type': 'text',
+                'error': False
+            }
+        
+        # History questions
+        if any(word in query_lower for word in ['history', 'historical', 'when did', 'ancient']):
+            return {
+                'content': 'History is full of interesting events and people! I\'d love to help with historical questions. Could you be more specific about the time period, person, or event you\'re asking about?',
+                'type': 'text',
+                'error': False
+            }
+        
+        # Technology questions
+        if any(word in query_lower for word in ['technology', 'computer', 'internet', 'AI', 'artificial intelligence']):
+            return {
+                'content': 'Technology is evolving rapidly! I can discuss various tech topics. What specific technology or concept would you like to learn about? I can also run code if you want to see examples!',
+                'type': 'text',
+                'error': False
+            }
+        
+        # General fallback
         return {
-            'content': 'I\'m a code execution chatbot! I can run JavaScript and Python code for you. Select a language from the dropdown and enter your code to get started.',
+            'content': f'That\'s an interesting question about "{query}"! While I couldn\'t fetch real-time information, I\'m still here to help. You could:\n\n• Try asking a more specific question\n• Rephrase your question\n• Ask me to explain a concept\n• Use the code execution modes for programming topics\n\nWhat would you like to explore?',
             'type': 'text',
             'error': False
         }
@@ -245,7 +418,8 @@ def run_server():
     
     httpd = HTTPServer(server_address, CodeExecutionChatbotHandler)
     
-    print(f"🚀 Code Execution Chatbot Server running at http://localhost:{PORT}")
+    print(f"🚀 Intelligent Code Execution Chatbot Server running at http://localhost:{PORT}")
+    print("💬 Can answer questions on any topic with web search")
     print("📝 Supports JavaScript and Python code execution")
     print("🔒 Code runs in isolated temporary files with timeouts")
     print("⚠️  Press Ctrl+C to stop the server")
