@@ -1,7 +1,5 @@
 import http.server
 import socketserver
-import json
-import urllib.parse
 from google_search import chatbot_query
 
 PORT = 8080
