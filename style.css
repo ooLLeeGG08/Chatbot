@@ -1,25 +1,74 @@
 html, body {
     margin: 0px;
+    padding: 20px;
     width: 100vw;
     height: 100vh;
-    font-family: arial;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
     overflow: hidden;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #333;
 }
 
 .chatbotImage {
-    margin-top: 40px;
-    width: 35vw;
+    margin-top: 20px;
+    width: min(35vw, 200px);
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 .chatbotOutput {
-    font-size: 45px;
+    font-size: clamp(18px, 4vw, 28px);
+    background: white;
+    padding: 20px;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    max-width: 80vw;
+    margin: 20px auto;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.4;
 }
 
 .chatbotInput {
     margin-top: 10px;
-    width: 55vw;
-    padding: 20px;
-    font-size: 25px;
+    width: min(55vw, 400px);
+    padding: 15px 20px;
+    font-size: 18px;
+    border: none;
+    border-radius: 25px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    outline: none;
+    transition: box-shadow 0.3s ease;
+}
+
+.chatbotInput:focus {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+#submitButton {
+    margin-top: 15px;
+    padding: 12px 30px;
+    font-size: 16px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.1s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+#submitButton:hover:not(:disabled) {
+    background: #45a049;
+    transform: translateY(-1px);
+}
+
+#submitButton:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+    transform: none;
 }
 
 input,
