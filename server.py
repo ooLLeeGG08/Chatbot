@@ -1,12 +1,13 @@
 import http.server
 import socketserver
+import os
 from google_search import chatbot_query
 
 PORT = 8080
 
 class Handler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, directory=os.getcwd(), **kwargs)
 
     def end_headers(self):
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -17,6 +18,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.end_headers()
+
+    def do_GET(self):
+        # If requesting the root, serve index.html
+        if self.path == '/':
+            self.path = '/index.html'
+        
+        # Serve static files
+        return super().do_GET()
 
     def do_POST(self):
         try:
