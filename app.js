@@ -10,27 +10,40 @@ function userSubmitEventHandler(event) {
         (event.keyCode && event.keyCode === 13) ||
         event.type === 'click'
     ) {
-        chatbotOutput.innerText = 'thinking...';
-        askChatBot(chatbotInput.value);
+        const userInput = chatbotInput.value.trim();
+        if (userInput) {
+            chatbotOutput.innerText = 'thinking...';
+            askChatBot(userInput);
+        }
     }
 }
 
 function askChatBot(userInput) {
-    const myRequest = new Request('/', {
+    const myRequest = new Request('/api/chat', {
         method: 'POST',
-        body: userInput
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userInput })
     });
 
-    fetch(myRequest).then(function(response) {
-        if (!response.ok) {
-            throw new Error('HTTP error, status = ' + response.status);
-        } else {
-            return response.text();
-        }
-    }).then(function(text) {
-        chatbotInput.value = '';
-        chatbotOutput.innerText = text;
-    }).catch((err) => {
-        console.error(err);
-    });
+    fetch(myRequest)
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            chatbotInput.value = '';
+            if (data.status === 'success') {
+                chatbotOutput.innerText = data.response;
+            } else {
+                chatbotOutput.innerText = data.error || 'Sorry, something went wrong.';
+            }
+        })
+        .catch((err) => {
+            console.error('Error:', err);
+            chatbotOutput.innerText = 'Sorry, I\'m having trouble connecting. Please try again.';
+        });
 }

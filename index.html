@@ -1,15 +1,33 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="./style.css">
-    <title>Google Based ChatBot</title>
+    <title>AI ChatBot - Powered by Google Search</title>
 </head>
 <body>
-    <img class="chatbotImage" src="./chatbot.png" />
-    <span id="chatbotOutput" class="chatbotOutput">Talk to me.</span>
-    <input id="chatbotInput" class="chatbotInput" />
-    <input id="submitButton" type="submit" />
+    <div class="container">
+        <header>
+            <img class="chatbotImage" src="./chatbot.png" alt="ChatBot" />
+            <h1>AI ChatBot</h1>
+            <p>Ask me anything and I'll search the web for answers!</p>
+        </header>
+        
+        <div class="chat-container">
+            <div id="chatbotOutput" class="chatbotOutput">Hello! I'm your AI assistant. Ask me anything and I'll search the web to find you the best answer.</div>
+            
+            <div class="input-container">
+                <input id="chatbotInput" class="chatbotInput" placeholder="Type your question here..." />
+                <button id="submitButton" class="submitButton">Send</button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Powered by Google Search API</p>
+        </footer>
+    </div>
+    
     <script src='./app.js'></script>
 </body>
 </html>
