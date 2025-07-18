@@ -11,11 +11,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         self.send_response(200)
+        self.send_header('Content-type', 'text/plain')
         content_length = int(self.headers['Content-Length'])
         post_body = self.rfile.read(content_length)
         self.end_headers()
-        print('user query', post_body)
-        google_search_chatbot_reply = chatbot_query(post_body)
+        
+        # Decode the POST body from bytes to string
+        query = post_body.decode('utf-8')
+        print('User query:', query)
+        
+        google_search_chatbot_reply = chatbot_query(query)
         self.wfile.write(str.encode(google_search_chatbot_reply))
 
 with socketserver.TCPServer(('', PORT), Handler) as httpd:
