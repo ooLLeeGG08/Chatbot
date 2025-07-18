@@ -1,4 +1,7 @@
-requests==2.22.0
-lxml==4.4.1
-google==2.0.2
-beautifulsoup4==4.8.0
+Flask==2.3.3
+Flask-CORS==4.0.0
+requests==2.31.0
+lxml>=4.9.0
+googlesearch-python==1.2.3
+beautifulsoup4==4.12.2
+gunicorn==21.2.0

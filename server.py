@@ -1,27 +1,43 @@
-import http.server
-import socketserver
+from flask import Flask, request, jsonify, send_from_directory
+from flask_cors import CORS
+import os
 from google_search import chatbot_query
 
-PORT = 8080
-DIRECTORY = 'public'
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
-class Handler(http.server.SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=DIRECTORY, **kwargs)
+# Serve static files
+@app.route('/')
+def index():
+    return send_from_directory('.', 'index.html')
 
-    def do_POST(self):
-        self.send_response(200)
-        content_length = int(self.headers['Content-Length'])
-        post_body = self.rfile.read(content_length)
-        self.end_headers()
-        print('user query', post_body)
-        google_search_chatbot_reply = chatbot_query(post_body)
-        self.wfile.write(str.encode(google_search_chatbot_reply))
+@app.route('/<path:filename>')
+def static_files(filename):
+    return send_from_directory('.', filename)
 
-with socketserver.TCPServer(('', PORT), Handler) as httpd:
-    print('serving at port', PORT)
+# API endpoint for chatbot
+@app.route('/api/chat', methods=['POST'])
+def chat():
     try:
-        httpd.serve_forever()
-    except KeyboardInterrupt:
-        pass
-    httpd.server_close()
+        data = request.get_json()
+        if not data or 'message' not in data:
+            return jsonify({'error': 'No message provided'}), 400
+        
+        user_message = data['message']
+        bot_response = chatbot_query(user_message)
+        
+        return jsonify({
+            'response': bot_response,
+            'status': 'success'
+        })
+    
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({
+            'error': 'Sorry, I encountered an error processing your request.',
+            'status': 'error'
+        }), 500
+
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 8080))
+    app.run(host='0.0.0.0', port=port, debug=False)
