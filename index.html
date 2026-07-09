@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A friendly AI chatbot that answers questions, does quick math, and chats with you." />
+    <script>
+        (function () {
+            var saved = localStorage.getItem('theme');
+            var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.setAttribute('data-theme', saved || (prefersDark ? 'dark' : 'light'));
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="./style.css">
+    <title>AI ChatBot</title>
+</head>
+<body>
+    <button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark mode" title="Toggle dark mode">
+        <span class="theme-toggle-track">
+            <span class="theme-toggle-icon theme-toggle-icon--sun" aria-hidden="true">☀️</span>
+            <span class="theme-toggle-icon theme-toggle-icon--moon" aria-hidden="true">🌙</span>
+            <span class="theme-toggle-thumb"></span>
+        </span>
+    </button>
+
+    <div class="container">
+        <header>
+            <img class="chatbotImage" src="./chatbot1.png" alt="ChatBot" />
+            <h1>AI ChatBot</h1>
+            <p>Ask me anything!</p>
+        </header>
+        
+        <div class="chat-container">
+            <div id="chatbotOutput" class="chatbotOutput">
+                <span class="chatbotOutput-text">Hello! I'm your AI assistant. Ask me anything, say hi, or give me a math problem to solve.</span>
+            </div>
+
+            <div class="input-container">
+                <input id="chatbotInput" class="chatbotInput" placeholder="Type your question here..." autocomplete="off" />
+                <button id="submitButton" class="submitButton">
+                    <span>Send</span>
+                </button>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Built with care</p>
+        </footer>
+    </div>
+    
+    <script src='./app.js'></script>
+</body>
+</html>
