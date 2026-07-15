@@ -1,7 +1,10 @@
 import ast
 import operator
+import os
 import re
+
 import requests
+from dotenv import load_dotenv
 
 _ALLOWED_OPERATORS = {
     ast.Add: operator.add,
@@ -13,11 +16,6 @@ _ALLOWED_OPERATORS = {
     ast.UAdd: operator.pos,
 }
 
-_QUESTION_PREFIXES = (
-    "what is a ", "what is an ", "what is ", "what's a ", "what's an ", "what's ",
-    "who is ", "who's ", "define ",
-)
-
 _SMALL_TALK = (
     (("hello", "hi", "hey", "hiya", "yo"), "Hello! How can I help you today?"),
     (("how are you", "how're you", "how you doing", "how are u"), "I'm doing well, thanks for asking! What can I help you with?"),
@@ -28,6 +26,16 @@ _SMALL_TALK = (
     (("good evening",), "Good evening! What can I help you with?"),
     (("who are you", "what are you"), "I'm a chatbot that can answer questions and do simple math!"),
 )
+
+SYSTEM_PROMPT = (
+    "You are a concise, friendly chatbot embedded in a small web widget. "
+    "Give direct, factual answers in 1-3 sentences unless asked for more "
+    "detail. If you don't know, say so plainly instead of guessing."
+)
+
+_GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
+
+load_dotenv()
 
 
 def _try_small_talk(query):
@@ -59,42 +67,21 @@ def _try_calculate(query):
         return None
 
 
-def _simplify_question(query):
-    lowered = query.strip().rstrip('?').lower()
-    for prefix in _QUESTION_PREFIXES:
-        if lowered.startswith(prefix):
-            return lowered[len(prefix):].strip()
-    return query.strip().rstrip('?')
-
-
-def _query_duckduckgo(search_term):
-    response = requests.get(
-        'https://api.duckduckgo.com/',
-        params={
-            'q': search_term,
-            'format': 'json',
-            'no_html': 1,
-            'skip_disambig': 1,
+def _query_gemini(query):
+    api_key = os.environ.get("GEMINI_API_KEY", "")
+    response = requests.post(
+        _GEMINI_API_URL,
+        headers={"x-goog-api-key": api_key, "Content-Type": "application/json"},
+        json={
+            "contents": [{"parts": [{"text": query}]}],
+            "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+            "generationConfig": {"maxOutputTokens": 300},
         },
-        headers={
-            'User-Agent': 'Mozilla/5.0 (compatible; AIChatBot/1.0)',
-        },
-        timeout=5,
+        timeout=10,
     )
     response.raise_for_status()
     data = response.json()
-
-    for field in ('Answer', 'AbstractText', 'Definition'):
-        text = data.get(field, '').strip()
-        if text:
-            return text
-
-    for topic in data.get('RelatedTopics', []):
-        text = topic.get('Text', '').strip()
-        if text:
-            return text
-
-    return None
+    return data["candidates"][0]["content"]["parts"][0]["text"].strip()
 
 
 def chatbot_query(query):
@@ -110,18 +97,14 @@ def chatbot_query(query):
             calculation = int(calculation)
         return str(calculation)
 
-    raw_query = query.strip().rstrip('?')
-    simplified_query = _simplify_question(query)
-
-    for search_term in dict.fromkeys([simplified_query, raw_query]):
-        if not search_term:
-            continue
-        try:
-            text = _query_duckduckgo(search_term)
-            if text:
-                return text
-        except Exception as e:
-            print(f"google_search error: {e}")
-
-    return fallback
-
+    try:
+        return _query_gemini(query)
+    except requests.exceptions.HTTPError as e:
+        print(f"answer_engine error (status): {e}")
+        return fallback
+    except requests.exceptions.RequestException as e:
+        print(f"answer_engine error (connection): {e}")
+        return fallback
+    except Exception as e:
+        print(f"answer_engine error: {e}")
+        return fallback

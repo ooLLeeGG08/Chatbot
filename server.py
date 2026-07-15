@@ -1,12 +1,12 @@
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
-from google_search import chatbot_query
+from answer_engine import chatbot_query
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)
 
-# Serve static files
+
 @app.route('/')
 def index():
     return send_from_directory('.', 'index.html')
@@ -15,7 +15,7 @@ def index():
 def static_files(filename):
     return send_from_directory('.', filename)
 
-# API endpoint for chatbot
+
 @app.route('/api/chat', methods=['POST'])
 def chat():
     try:
